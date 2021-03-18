@@ -1,7 +1,7 @@
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter';
 import { JIRA_API_REQUEST, SLACK_API_REQUEST, MONDAY_API_REQUEST } from './URL'
-import { JiraProjects, MondayProjects, SlackChannels } from './mock/projects'
+import { JiraProjects, MondayProjects, SlackChannels } from './mock/projectsData'
 import {TicketTypes } from '../common/TickeTypes'
 
 const mock = new MockAdapter(axios);
