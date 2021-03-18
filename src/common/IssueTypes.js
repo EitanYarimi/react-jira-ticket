@@ -1,0 +1,1 @@
+export const IssueTypes = ['Bug', 'Story','Task']
