@@ -12,6 +12,8 @@ import { TicketTypes } from '../common/TickeTypes'
 import { ProjectService, ProjectServiceMapper } from '../api/ProjectsService';
 import { InlineIcon} from '@iconify/react';
 import editIcon from '@iconify-icons/akar-icons/edit';
+import CheckIcon from '@material-ui/icons/Check';
+import Box from '@material-ui/core/Box';
 import BottomNavigation from '@material-ui/core/BottomNavigation';
 import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
 
@@ -20,22 +22,33 @@ class Ticket extends React.Component {
   
   constructor(props) {
     super(props);
-    this.wrapper = React.createRef();
+    this.ticketFormRef = React.createRef();
     this.state = {
+      formSubmited: false,
       ticketType: TicketTypes.JIRA,
       projects: [],
     };
   }
+
   componentDidMount() {
     ProjectService.getJIRAProjects()
       .then((response) => {
           this.setState({ projects: response.data.data });
         });
   }
-  handleCreateTicket() {
-    console.log('handleCreateTicket')
+
+  handleCreateTicket = () => {
+    const ticketData = this.ticketFormRef.current.validate() 
+    if (ticketData) {
+      ProjectService.postTicket(ticketData, this.state.ticketType).then(respose => {
+        if (respose.data.ok) {
+          this.setState({ formSubmited: true })
+        }
+      })
+    }
   }
-  onTicketTypeClick(event, ticketType) {
+
+  onTicketTypeClick = (event, ticketType) => {
     this.setState({ ticketType: ticketType }); 
     ProjectServiceMapper[ticketType]()
       .then((response) => {
@@ -43,6 +56,7 @@ class Ticket extends React.Component {
         });
 
   }
+  
   render() {
     const { classes } = this.props
     return <React.Fragment>
@@ -61,7 +75,7 @@ class Ticket extends React.Component {
           </Typography>
           <BottomNavigation
               value={this.state.ticketType}
-              onChange={this.onTicketTypeClick.bind(this)}
+              onChange={this.onTicketTypeClick}
               showLabels
               className={classes.root}
             >
@@ -70,20 +84,30 @@ class Ticket extends React.Component {
               <BottomNavigationAction value={TicketTypes.SLACK} label="Slack" />
             </BottomNavigation>
           <TicketForm
-            ref={this.wrapper}
+            ref={this.ticketFormRef}
             ticketType={this.state.ticketType}
             projects={this.state.projects}
           ></TicketForm>
-          <div className={classes.buttons}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.handleCreateTicket}
-              className={classes.button}
-            >
-              Create a Ticket
+          { !this.state.formSubmited &&
+            <div className={classes.buttons}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={this.handleCreateTicket}
+                className={classes.button}
+              >
+                Create a Ticket
             </Button>
-          </div>
+            </div>
+          }
+          
+          {this.state.formSubmited &&
+            <Box color="success.main">
+              <Typography component="h5" variant="h6" align="right">
+                <span> <InlineIcon icon={CheckIcon} />Ticket Submitted</span>  
+              </Typography>
+            </Box>
+          }
         </Paper>
       </main>
     </React.Fragment>
